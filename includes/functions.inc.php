@@ -1,7 +1,6 @@
 <?php
 
 function emptyInputSignup($fname,$lname,$sname,$hnmbr,$pcode,$city,$email,$pwd,$pwdr) {
-    $result;
     if (empty($fname) || empty($lname) || empty($sname) || empty($hnmbr) || empty($pcode) || empty($city) || empty($email) || empty($pwd) || empty($pwdr)) {
         $result = true;
     } else {
@@ -11,7 +10,6 @@ function emptyInputSignup($fname,$lname,$sname,$hnmbr,$pcode,$city,$email,$pwd,$
 }
 
 function invalidEmail($email) {
-    $result;
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { // PHP BUILDIN EMAIL TESTER
         $result = true;
     } else {
@@ -21,7 +19,6 @@ function invalidEmail($email) {
 }
 
 function pwdMatch($pwd, $pwdr) {
-    $result;
     if ($pwd !== $pwdr) {
         $result = true;
     } else {
@@ -77,7 +74,6 @@ function createUser($conn,$email,$pwd,$fname,$lname,$sname,$hnmbr,$pcode,$city) 
 }
 
 function emptyInputSignin($email,$pwd) {
-    $result;
     if (empty($email) || empty($pwd)) {
         $result = true;
     } else {
@@ -94,28 +90,44 @@ function loginUser($conn, $email, $pwd){
     }
 
     $pwdhashed = $emailExists["password"];
+
+
+
+
+
     $checkpwd = password_verify($pwd, $pwdhashed); // PHP FUNCTION TO CHECK IF PROVIDED PASSWOR MATCHES THE HASHED PASSWORD FROM THE DB
 
-    // if ($checkpwd === false) {
-    // if (password_verify($pwd, $pwdhashed)) {
-    //     header("location: ../signin.php?error=wrongsignin");
-    //     exit();
-    // } else if ($checkpwd === true) {
-    //     session_start(); // PHP FUNCTION TO KEEP TRACK OF THE USERS SESSION (LOGGED-IN STATUS)
-    //     $_SESSION["uid"] = $emailExists["email"];
-    //     header("location: ../index.php");
-    //     exit();
-    // }
-
-    if (password_verify($pwd, $pwdhashed)) {
-        session_start(); // PHP FUNCTION TO KEEP TRACK OF THE USERS SESSION (LOGGED-IN STATUS)
-        $_SESSION["uid"] = $emailExists["email"];
-        header("location: ../index.php");
-        exit();
-    } else {
+    if ($checkpwd === false) {
         header("location: ../signin.php?error=wrongsignin");
         exit();
+    } else if ($checkpwd === true) {
+        session_start(); // PHP FUNCTION TO KEEP TRACK OF THE USERS SESSION (LOGGED-IN STATUS)
+        $_SESSION["uid"] = $emailExists["email"];
+        $_SESSION["userid"] = $emailExists["id"];
 
+        // RESTORE PREVIOUS CART IF AVAILABLE
+        $sql = "SELECT cart_data FROM nerdy_gadgets_start.cart_table WHERE user_id = " . $_SESSION['userid'] ;
+        $result = $conn->query($sql);
+        if ($result) {
+            $row = $result->fetch_assoc();
+            $_SESSION['cart'] = json_decode($row['cart_data'],true);
+        };
 
+        header("location: ../index.php");
+        exit();
     }
 }
+   
+
+//     if (password_verify($pwd, $pwdhashed)) {
+//         session_start(); // PHP FUNCTION TO KEEP TRACK OF THE USERS SESSION (LOGGED-IN STATUS)
+//         $_SESSION["uid"] = $emailExists["email"];
+//         header("location: ../index.php");
+//         exit();
+//     } else {
+//         header("location: ../signin.php?error=wrongsignin");
+//         exit();
+
+
+//     }
+// }

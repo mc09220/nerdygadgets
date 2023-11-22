@@ -1,12 +1,18 @@
 <?php
     //-- CONNECT TO DB AND RETRIEVE DATA 
     require_once 'dbh.inc.php';
+
+    // GET UID IF LOGGED IN FOR PRESENTING VISITED PRODUCTS IF NOT LOGGED IN USE DUMMY ID 0
+    if(isset($_SESSION['userid'])) {
+        $uid = $_SESSION['userid'];
+    } else {
+        $uid = 0;
+    }
    
     //-- FETCH FEATURED PRODUCTS FROM DB 
     $products = "";
     $productheader = "AANBEVOLEN PRODUCTEN";
-    $sql = "SELECT * FROM nerdy_gadgets_start.product WHERE id IN (7,15,24,53) ORDER BY id ASC";
-    $result = $conn->query($sql);
+    $sql = "SELECT * FROM nerdy_gadgets_start.product WHERE id IN (SELECT productID FROM nerdy_gadgets_start.productvisited WHERE uid = " . $uid . ") UNION (SELECT * FROM nerdy_gadgets_start.product ORDER BY RAND() LIMIT 4) ORDER BY RAND() LIMIT 4;";    $result = $conn->query($sql);
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $products = $products . "
